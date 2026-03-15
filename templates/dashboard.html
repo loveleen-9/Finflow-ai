@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinFlow AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#eef3fb; --surface:#ffffff; --surface2:#f4f7fd; --border:#dde5f0; --border2:#c8d5e8;
+    --blue:#1a56db; --blue-dim:#1444b8; --blue-bg:rgba(26,86,219,0.07); --blue-bg2:rgba(26,86,219,0.13);
+    --red:#dc2626; --red-bg:rgba(220,38,38,0.08); --amber:#b45309; --amber-bg:rgba(180,83,9,0.08);
+    --approve:#059669; --approve-bg:rgba(5,150,105,0.08);
+    --green:var(--blue); --green-bg:var(--blue-bg); --green-dim:var(--blue-dim);
+    --text:#0f172a; --text2:#374151; --text3:#64748b;
+    --shadow-sm:0 1px 3px rgba(15,30,60,0.08),0 1px 2px rgba(15,30,60,0.05);
+    --shadow-md:0 4px 12px rgba(15,30,60,0.10),0 2px 4px rgba(15,30,60,0.06);
+    --shadow-blue:0 4px 14px rgba(26,86,219,0.20);
+    --r:10px; --rs:6px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif; min-height:100vh; font-size:14px; -webkit-font-smoothing:antialiased; }
+  .grid-bg { position:fixed; inset:0; background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px); background-size:40px 40px; opacity:0.3; pointer-events:none; }
+  .header { border-bottom:1px solid var(--border); padding:0.9rem 2rem; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:10; background:#fff; box-shadow:var(--shadow-sm); }
+  .logo { display:flex; align-items:center; gap:12px; }
+  .logo-mark { width:38px; height:38px; background:linear-gradient(135deg,#2563eb,#1e40af); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; box-shadow:var(--shadow-blue); }
+  .logo-text { font-size:21px; font-weight:800; color:var(--text); letter-spacing:-0.5px; }
+  .logo-text span { color:var(--blue); }
+  .status-dot { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:var(--text2); }
+  .dot { width:9px; height:9px; border-radius:50%; background:var(--approve); box-shadow:0 0 0 3px rgba(5,150,105,0.2); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+  .tab-bar { display:flex; border-bottom:1px solid var(--border); background:#fff; position:relative; z-index:9; height:45px; flex-shrink:0; }
+  .tab-btn { padding:0 1.75rem; font-size:13px; font-weight:600; font-family:'Inter',sans-serif; background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; color:var(--text3); transition:all 0.18s; height:100%; }
+  .tab-btn.active { color:var(--blue); border-bottom-color:var(--blue); }
+  .tab-btn:hover:not(.active) { color:var(--text2); background:var(--surface2); }
+  .tab-badge { font-size:10px; background:var(--blue-bg); color:var(--blue); border:1px solid rgba(26,86,219,0.2); border-radius:12px; padding:1px 7px; margin-left:6px; font-weight:700; vertical-align:middle; }
+  .main { display:grid; grid-template-columns:360px 1fr; height:calc(100vh - 107px); position:relative; z-index:10; }
+  .sidebar { border-right:1px solid var(--border); display:flex; flex-direction:column; overflow-y:auto; background:var(--surface2); }
+  .section { padding:1.25rem 1.5rem; border-bottom:1px solid var(--border); }
+  .section-title { font-size:11px; font-weight:700; letter-spacing:0.07em; color:var(--text3); text-transform:uppercase; margin-bottom:1rem; display:flex; align-items:center; gap:7px; }
+  .section-title::before { content:''; width:3px; height:13px; background:var(--blue); border-radius:2px; flex-shrink:0; }
+  .invoice-card { border:1px solid var(--border); border-radius:var(--r); padding:1rem 1.1rem; cursor:pointer; transition:all 0.2s; margin-bottom:8px; background:#fff; box-shadow:var(--shadow-sm); }
+  .invoice-card:hover { border-color:var(--blue); box-shadow:var(--shadow-md); transform:translateY(-1px); }
+  .invoice-card.selected { border-color:var(--blue); background:#fff; box-shadow:var(--shadow-blue); }
+  .invoice-card.loading { opacity:0.6; cursor:default; }
+  .inv-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+  .inv-num { font-size:13px; font-weight:700; color:var(--text); }
+  .inv-badge { font-size:11px; padding:3px 10px; border-radius:20px; font-weight:600; }
+  .badge-clean { background:var(--approve-bg); color:var(--approve); border:1px solid rgba(5,150,105,0.3); }
+  .badge-suspicious { background:var(--red-bg); color:var(--red); border:1px solid rgba(220,38,38,0.3); }
+  .inv-vendor { font-size:12px; font-weight:500; color:var(--text3); margin-bottom:6px; }
+  .inv-amount { font-size:22px; font-weight:800; color:var(--blue); font-variant-numeric:tabular-nums; letter-spacing:-0.5px; }
+  .upload-zone { border:2px dashed var(--border2); border-radius:var(--r); padding:1.25rem 1rem; text-align:center; cursor:pointer; transition:all 0.2s; background:#fff; color:var(--text3); font-size:13px; font-weight:500; line-height:1.9; }
+  .upload-zone:hover, .upload-zone.drag-over { border-color:var(--blue); background:var(--blue-bg); color:var(--text2); }
+  .upload-zone .up-icon { font-size:26px; margin-bottom:4px; display:block; }
+  .upload-zone input[type=file] { display:none; }
+  .upload-status { font-size:12px; font-weight:600; color:var(--blue); margin-top:8px; display:none; }
+  .custom-area { width:100%; background:#fff; border:1px solid var(--border2); border-radius:var(--r); padding:0.8rem 0.9rem; color:var(--text); font-family:'Courier New',monospace; font-size:12px; resize:vertical; min-height:100px; line-height:1.7; transition:all 0.2s; box-shadow:inset 0 1px 3px rgba(15,30,60,0.04); }
+  .custom-area:focus { outline:none; border-color:var(--blue); box-shadow:inset 0 1px 3px rgba(15,30,60,0.04),0 0 0 3px var(--blue-bg); }
+  .custom-area::placeholder { color:var(--text3); }
+  .custom-area.pending { border-color:var(--amber); box-shadow:0 0 0 3px var(--amber-bg); }
+  .auto-hint { font-size:12px; font-weight:500; color:var(--text3); margin-top:6px; transition:color 0.2s; }
+  .auto-hint.counting { color:var(--amber); }
+  .agent-status { padding:0.6rem 1.5rem; font-size:13px; font-weight:500; color:var(--text3); display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); background:var(--surface2); }
+  .agent-status.running { color:var(--blue); background:var(--blue-bg); font-weight:600; }
+  .content { display:flex; flex-direction:column; overflow:hidden; background:#fff; }
+  .console { flex:1; padding:1.5rem 1.75rem; overflow-y:auto; font-size:13px; line-height:2; font-family:'Courier New',monospace; }
+  .console-empty { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text3); gap:16px; }
+  .log-line { padding:3px 0 3px 14px; border-left:2px solid transparent; animation:fadeIn 0.25s ease; color:var(--text2); }
+  .log-line.hi { color:var(--blue); border-left-color:var(--blue); font-weight:600; }
+  .log-line.er { color:var(--red); border-left-color:var(--red); }
+  .log-line.wa { color:var(--amber); border-left-color:var(--amber); }
+  .log-line.hd { color:var(--text3); border-left:none; padding-left:0; font-weight:700; }
+  @keyframes fadeIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
+  .spinner { display:inline-block; width:13px; height:13px; border:2px solid var(--border2); border-top-color:var(--blue); border-radius:50%; animation:spin 0.6s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .result-panel { border-top:1px solid var(--border); padding:1.25rem 1.75rem; background:#fff; display:none; }
+  .result-panel.visible { display:block; }
+  .decision-banner { border-radius:var(--r); padding:1.1rem 1.4rem; display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+  .decision-banner.approve { background:var(--approve-bg); border:1px solid rgba(5,150,105,0.3); }
+  .decision-banner.review  { background:var(--amber-bg);   border:1px solid rgba(180,83,9,0.3); }
+  .decision-banner.reject  { background:var(--red-bg);     border:1px solid rgba(220,38,38,0.3); }
+  .decision-text { font-size:20px; font-weight:800; letter-spacing:-0.3px; }
+  .decision-text.approve { color:var(--approve); }
+  .decision-text.review  { color:var(--amber); }
+  .decision-text.reject  { color:var(--red); }
+  .result-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:1rem; }
+  .result-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--r); padding:1rem; box-shadow:var(--shadow-sm); }
+  .rc-label { font-size:11px; font-weight:600; letter-spacing:0.06em; color:var(--text3); text-transform:uppercase; margin-bottom:6px; }
+  .rc-value { font-size:18px; font-weight:700; }
+  .rc-value.green { color:var(--approve); }
+  .rc-value.red   { color:var(--red); }
+  .rc-value.amber { color:var(--amber); }
+  .rc-value.white { color:var(--text); font-size:14px; font-weight:600; }
+  .risk-bar-wrap { margin-bottom:1rem; }
+  .risk-bar-track { height:6px; background:var(--surface2); border-radius:3px; overflow:hidden; border:1px solid var(--border); }
+  .risk-bar-fill { height:100%; border-radius:3px; transition:width 1.2s ease; }
+  .risk-bar-labels { display:flex; justify-content:space-between; font-size:11px; font-weight:500; color:var(--text3); margin-top:5px; }
+  .flags-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .flag-tag { font-size:12px; font-weight:500; padding:4px 11px; border-radius:var(--rs); background:var(--red-bg); color:var(--red); border:1px solid rgba(220,38,38,0.2); }
+  .flag-tag.warn { background:var(--amber-bg); color:var(--amber); border-color:rgba(180,83,9,0.2); }
+  .reasoning-box { background:var(--surface2); border:1px solid var(--border); border-radius:var(--r); padding:1rem 1.1rem; font-size:13px; color:var(--text2); line-height:1.75; display:none; }
+  .bulk-zone { border:2px dashed var(--border2); border-radius:var(--r); padding:1rem; text-align:center; cursor:pointer; transition:all 0.2s; background:#fff; color:var(--text3); font-size:13px; font-weight:500; line-height:1.9; }
+  .bulk-zone:hover, .bulk-zone.drag-over { border-color:var(--amber); background:var(--amber-bg); color:var(--text2); }
+  .bulk-zone input[type=file] { display:none; }
+  .bulk-zone .up-icon { font-size:22px; display:block; margin-bottom:4px; }
+  .bulk-panel { display:none; flex-direction:column; overflow:hidden; flex:1; }
+  .bulk-panel.visible { display:flex; }
+  .bulk-header { padding:0.9rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; background:var(--surface2); }
+  .bulk-title { font-size:13px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:10px; }
+  .bulk-progress-bar { height:3px; background:var(--border); margin:0 1.5rem; flex-shrink:0; }
+  .bulk-progress-fill { height:100%; background:linear-gradient(90deg,var(--blue),#60a5fa); border-radius:2px; transition:width 0.4s ease; }
+  .bulk-sort  { font-size:12px; font-weight:600; color:var(--text3); background:none; border:1px solid var(--border2); border-radius:var(--rs); padding:5px 11px; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .bulk-sort:hover  { border-color:var(--blue); color:var(--blue); }
+  .bulk-clear { font-size:12px; font-weight:600; color:var(--text3); background:none; border:1px solid var(--border2); border-radius:var(--rs); padding:5px 11px; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .bulk-clear:hover { border-color:var(--red); color:var(--red); }
+  .bulk-list { flex:1; overflow-y:auto; padding:4px 0; }
+  .bulk-date-group { padding:0.45rem 1.5rem; font-size:10px; font-weight:700; letter-spacing:0.07em; color:var(--text3); text-transform:uppercase; background:var(--bg); position:sticky; top:0; z-index:1; border-bottom:1px solid var(--border); }
+  .bulk-row-header { display:none; }
+  .bulk-row { border:1px solid var(--border); border-radius:var(--r); margin:6px 1rem; padding:1rem 1.1rem; background:#fff; cursor:pointer; transition:all 0.18s; animation:fadeIn 0.3s ease; position:relative; overflow:hidden; box-shadow:var(--shadow-sm); }
+  .bulk-row:hover { border-color:var(--blue); box-shadow:var(--shadow-md); transform:translateY(-1px); }
+  .bulk-row.active { border-color:var(--blue); background:var(--blue-bg); }
+  .bulk-row.br-selected { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg2); }
+  .bulk-row::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:var(--r) 0 0 var(--r); }
+  .bulk-row.br-approve::before { background:var(--approve); }
+  .bulk-row.br-review::before  { background:var(--amber); }
+  .bulk-row.br-reject::before  { background:var(--red); }
+  .bulk-row.br-error::before   { background:var(--text3); }
+  .br-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+  .br-inv { font-size:14px; font-weight:700; color:var(--text); }
+  .br-decision { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; }
+  .br-decision.approve { background:var(--approve-bg); color:var(--approve); border:1px solid rgba(5,150,105,0.3); }
+  .br-decision.review  { background:var(--amber-bg);  color:var(--amber);   border:1px solid rgba(180,83,9,0.3); }
+  .br-decision.reject  { background:var(--red-bg);    color:var(--red);     border:1px solid rgba(220,38,38,0.3); }
+  .br-vendor { font-size:12px; font-weight:500; color:var(--text3); margin-bottom:8px; }
+  .br-mid { display:flex; align-items:center; gap:12px; margin-bottom:7px; }
+  .br-amount { font-size:20px; font-weight:800; color:var(--blue); letter-spacing:-0.5px; }
+  .br-score { font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; }
+  .br-score.green { background:var(--approve-bg); color:var(--approve); }
+  .br-score.amber { background:var(--amber-bg);   color:var(--amber); }
+  .br-score.red   { background:var(--red-bg);     color:var(--red); }
+  .br-bar-wrap { margin-bottom:7px; }
+  .br-bar-track { height:4px; background:var(--surface2); border-radius:2px; overflow:hidden; border:1px solid var(--border); }
+  .br-bar-fill  { height:100%; border-radius:2px; transition:width 0.8s ease; }
+  .br-flags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:7px; }
+  .br-flag  { font-size:11px; font-weight:500; padding:3px 9px; border-radius:var(--rs); background:var(--red-bg);   color:var(--red);   border:1px solid rgba(220,38,38,0.2); }
+  .br-warn  { font-size:11px; font-weight:500; padding:3px 9px; border-radius:var(--rs); background:var(--amber-bg); color:var(--amber); border:1px solid rgba(180,83,9,0.2); }
+  .br-bottom { display:flex; align-items:center; justify-content:space-between; }
+  .br-reasoning { font-size:12px; color:var(--text3); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:8px; }
+  .bulk-status { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+  .bs-approve { background:var(--approve-bg); color:var(--approve); border:1px solid rgba(5,150,105,0.3); }
+  .bs-review  { background:var(--amber-bg);  color:var(--amber);   border:1px solid rgba(180,83,9,0.3); }
+  .bs-reject  { background:var(--red-bg);    color:var(--red);     border:1px solid rgba(220,38,38,0.3); }
+  .bs-pass    { background:var(--approve-bg); color:var(--approve); border:1px solid rgba(5,150,105,0.3); }
+  .bs-fail    { background:var(--red-bg);    color:var(--red);     border:1px solid rgba(220,38,38,0.3); }
+  .bs-error   { background:var(--surface2);  color:var(--text3);   border:1px solid var(--border2); }
+  .br-actions { display:flex; gap:6px; }
+  .bra-pass { padding:4px 11px; background:none; border:1px solid var(--approve); border-radius:var(--rs); color:var(--approve); font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .bra-pass:hover { background:var(--approve); color:#fff; box-shadow:0 2px 6px rgba(5,150,105,0.3); }
+  .bra-fail { padding:4px 11px; background:none; border:1px solid var(--red); border-radius:var(--rs); color:var(--red); font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .bra-fail:hover { background:var(--red); color:#fff; box-shadow:0 2px 6px rgba(220,38,38,0.3); }
+  .bra-email { padding:4px 11px; background:none; border:1px solid var(--red); border-radius:var(--rs); color:var(--red); font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .bra-email:hover { background:var(--red); color:#fff; box-shadow:0 2px 6px rgba(220,38,38,0.3); }
+  .bulk-stats { padding:0.75rem 1.5rem; border-top:1px solid var(--border); display:grid; grid-template-columns:repeat(4,1fr); gap:10px; flex-shrink:0; background:var(--surface2); }
+  .bstat { text-align:center; padding:0.5rem; background:#fff; border-radius:var(--r); border:1px solid var(--border); box-shadow:var(--shadow-sm); }
+  .bstat-val { font-size:20px; font-weight:800; }
+  .bstat-lbl { font-size:11px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+  .override-row { display:none; align-items:center; gap:10px; margin-top:12px; padding:0.875rem 1.1rem; background:var(--amber-bg); border:1px solid rgba(180,83,9,0.25); border-radius:var(--r); }
+  .override-row.visible { display:flex; }
+  .override-label { font-size:13px; font-weight:500; color:var(--text2); flex:1; }
+  .override-label span { color:var(--amber); font-weight:700; }
+  .btn-pass { padding:0.5rem 1.25rem; background:none; border:1.5px solid var(--approve); border-radius:var(--rs); color:var(--approve); font-family:'Inter',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.15s; }
+  .btn-pass:hover { background:var(--approve); color:#fff; box-shadow:0 2px 8px rgba(5,150,105,0.3); }
+  .btn-fail { padding:0.5rem 1.25rem; background:none; border:1.5px solid var(--red); border-radius:var(--rs); color:var(--red); font-family:'Inter',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.15s; }
+  .btn-fail:hover { background:var(--red); color:#fff; box-shadow:0 2px 8px rgba(220,38,38,0.3); }
+  .override-done { font-size:13px; display:none; font-weight:700; }
+  /* ── email vendor row ── */
+  .email-row { display:none; flex-direction:column; gap:10px; margin-top:12px; padding:1rem 1.1rem; background:var(--red-bg); border:1px solid rgba(220,38,38,0.25); border-radius:var(--r); }
+  .email-row.visible { display:flex; }
+  .email-row-title { font-size:13px; font-weight:700; color:var(--red); display:flex; align-items:center; gap:7px; }
+  .email-to { width:100%; background:#fff; border:1px solid var(--border2); border-radius:var(--rs); padding:7px 10px; font-family:'Inter',sans-serif; font-size:13px; color:var(--text); outline:none; transition:all 0.15s; }
+  .email-to:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+  .email-to::placeholder { color:var(--text3); }
+  .email-subject { width:100%; background:#fff; border:1px solid var(--border2); border-radius:var(--rs); padding:7px 10px; font-family:'Inter',sans-serif; font-size:13px; color:var(--text); outline:none; transition:all 0.15s; }
+  .email-subject:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+  .email-body-area { width:100%; background:#fff; border:1px solid var(--border2); border-radius:var(--rs); padding:8px 10px; font-family:'Courier New',monospace; font-size:12px; color:var(--text); outline:none; resize:vertical; line-height:1.6; transition:all 0.15s; min-height:100px; }
+  .email-body-area:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+  .email-btns { display:flex; gap:8px; align-items:center; }
+  .btn-email-open { padding:0.5rem 1.1rem; background:var(--red); border:none; border-radius:var(--rs); color:#fff; font-family:'Inter',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.15s; }
+  .btn-email-open:hover { background:#b91c1c; box-shadow:0 2px 8px rgba(220,38,38,0.35); }
+  .btn-email-copy { padding:0.5rem 1.1rem; background:none; border:1px solid var(--border2); border-radius:var(--rs); color:var(--text2); font-family:'Inter',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .btn-email-copy:hover { border-color:var(--blue); color:var(--blue); }
+  .email-copy-done { font-size:12px; font-weight:700; color:var(--approve); display:none; }
+  .fields-card { border:1px solid var(--border2); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow-sm); }
+  .fields-toggle { width:100%; background:#fff; border:none; padding:0.75rem 1rem; display:flex; align-items:center; justify-content:space-between; cursor:pointer; color:var(--text2); font-family:'Inter',sans-serif; font-size:13px; font-weight:600; transition:background 0.15s; }
+  .fields-toggle:hover { background:var(--surface2); }
+  .fields-toggle .arrow { font-size:10px; transition:transform 0.2s; color:var(--text3); }
+  .fields-toggle.open .arrow { transform:rotate(90deg); }
+  .fields-body { display:none; padding:0.875rem 1rem; background:#fff; border-top:1px solid var(--border); }
+  .fields-body.open { display:block; }
+  .field-row { display:flex; align-items:baseline; gap:8px; padding:4px 0; }
+  .field-name { font-size:12px; font-weight:600; color:var(--text); min-width:115px; flex-shrink:0; }
+  .field-desc { font-size:12px; color:var(--text3); line-height:1.5; }
+  .field-badge { font-size:10px; font-weight:600; padding:2px 7px; border-radius:4px; flex-shrink:0; }
+  .fb-req { background:var(--blue-bg); color:var(--blue); border:1px solid rgba(26,86,219,0.2); }
+  .fb-opt { background:var(--surface2); color:var(--text3); border:1px solid var(--border2); }
+  .fields-divider { height:1px; background:var(--border); margin:6px 0; }
+  .history-view { display:none; flex-direction:column; height:calc(100vh - 107px); overflow:hidden; }
+  .history-view.visible { display:flex; }
+  .history-toolbar { padding:0.75rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; flex-shrink:0; background:#fff; }
+  .history-search { flex:1; background:var(--surface2); border:1px solid var(--border2); border-radius:var(--rs); padding:0.5rem 0.9rem; font-family:'Inter',sans-serif; font-size:13px; color:var(--text); outline:none; transition:all 0.15s; }
+  .history-search:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); background:#fff; }
+  .history-search::placeholder { color:var(--text3); }
+  .history-clear-btn { font-size:12px; font-weight:600; color:var(--text3); background:none; border:1px solid var(--border2); border-radius:var(--rs); padding:6px 13px; cursor:pointer; font-family:inherit; white-space:nowrap; transition:all 0.15s; }
+  .history-clear-btn:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+  .hist-range-bar { padding:0.6rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; flex-shrink:0; background:var(--surface2); flex-wrap:wrap; }
+  .hist-range-label { font-size:12px; font-weight:600; color:var(--text3); white-space:nowrap; }
+  .hist-date-input { background:#fff; border:1px solid var(--border2); border-radius:var(--rs); padding:5px 10px; font-family:'Inter',sans-serif; font-size:12px; font-weight:500; color:var(--text); outline:none; cursor:pointer; transition:all 0.15s; }
+  .hist-date-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+  .hist-range-sep { font-size:13px; color:var(--text3); font-weight:600; }
+  .hist-range-clear { font-size:12px; font-weight:600; color:var(--text3); background:none; border:1px solid var(--border2); border-radius:var(--rs); padding:5px 11px; cursor:pointer; font-family:inherit; transition:all 0.15s; white-space:nowrap; }
+  .hist-range-clear:hover { border-color:var(--red); color:var(--red); background:var(--red-bg); }
+  .hist-range-info { font-size:11px; font-weight:500; color:var(--blue); margin-left:auto; white-space:nowrap; }
+  .hist-range-warn { font-size:11px; font-weight:600; color:var(--amber); }
+  .history-list { flex:1; overflow-y:auto; padding:0.75rem 1.5rem 1.5rem; }
+  .history-date-group { font-size:11px; font-weight:700; letter-spacing:0.07em; color:var(--text3); text-transform:uppercase; margin:1.25rem 0 0.6rem; padding-bottom:6px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+  .history-date-group::after { content:''; flex:1; }
+  .history-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:var(--text3); gap:12px; font-size:14px; text-align:center; padding:3rem; }
+  .hist-card { border:1px solid var(--border); border-radius:var(--r); padding:0.9rem 1.1rem; background:#fff; cursor:pointer; transition:all 0.18s; margin-bottom:8px; position:relative; overflow:hidden; box-shadow:var(--shadow-sm); }
+  .hist-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:var(--r) 0 0 var(--r); }
+  .hist-card.hc-approve::before { background:var(--approve); }
+  .hist-card.hc-review::before  { background:var(--amber); }
+  .hist-card.hc-reject::before  { background:var(--red); }
+  .hist-card:hover { border-color:var(--blue); box-shadow:var(--shadow-md); transform:translateY(-1px); }
+  .hc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+  .hc-inv { font-size:14px; font-weight:700; color:var(--text); }
+  .hc-time { font-size:12px; font-weight:500; color:var(--text3); }
+  .hc-mid { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+  .hc-vendor { font-size:12px; font-weight:500; color:var(--text3); }
+  .hc-amount { font-size:15px; font-weight:800; color:var(--blue); letter-spacing:-0.3px; }
+  .hc-bottom { display:flex; align-items:center; justify-content:space-between; }
+  .hc-decision { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; }
+  .hc-decision.approve { background:var(--approve-bg); color:var(--approve); border:1px solid rgba(5,150,105,0.3); }
+  .hc-decision.review  { background:var(--amber-bg);  color:var(--amber);   border:1px solid rgba(180,83,9,0.3); }
+  .hc-decision.reject  { background:var(--red-bg);    color:var(--red);     border:1px solid rgba(220,38,38,0.3); }
+  .hc-risk { font-size:12px; font-weight:600; color:var(--text3); }
+</style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <header class="header">
+      <div class="logo">
+        <div class="logo-mark">&#9654;</div>
+        <span class="logo-text">Fin<span>Flow</span> AI</span>
+      </div>
+      <div class="status-dot"><div class="dot"></div> Agent Online</div>
+    </header>
+    <nav class="tab-bar">
+      <button class="tab-btn active" id="tab-analyze" onclick="switchTab('analyze')">&#9889; Analyze</button>
+      <button class="tab-btn" id="tab-history" onclick="switchTab('history')">&#128337; History <span class="tab-badge" id="historyBadge" style="display:none">0</span></button>
+    </nav>
+    <div class="main" id="analyzeView">
+      <aside class="sidebar">
+        <div class="section">
+          <div class="section-title">Sample Invoices — click to analyze</div>
+          <div class="invoice-card selected" id="card-clean" onclick="selectInvoice('clean')">
+            <div class="inv-header"><span class="inv-num">INV-2024-001</span><span class="inv-badge badge-clean">Clean</span></div>
+            <div class="inv-vendor">TechSupplies Co.</div>
+            <div class="inv-amount">$1,595.00</div>
+          </div>
+          <div class="invoice-card" id="card-suspicious" onclick="selectInvoice('suspicious')">
+            <div class="inv-header"><span class="inv-num">INV-2024-002</span><span class="inv-badge badge-suspicious">Suspicious</span></div>
+            <div class="inv-vendor">SuspiciousVendor LLC</div>
+            <div class="inv-amount">$7,500.00</div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-title">Upload Invoice File</div>
+          <div class="upload-zone" id="uploadZone">
+            <span class="up-icon">&#8679;</span>
+            Drop PDF, Excel, CSV or image here<br>
+            <span style="color:var(--text3);font-size:11px;">or click to browse</span>
+            <input type="file" id="fileInput" accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png">
+          </div>
+          <div class="upload-status" id="uploadStatus"></div>
+        </div>
+        <div class="section">
+          <div class="section-title">Or Paste Invoice Text</div>
+<textarea class="custom-area" id="customText" placeholder="Paste any invoice text here — agent runs automatically after you stop typing..."></textarea>
+          <div class="auto-hint" id="autoHint">Agent runs 1.5 s after you stop typing</div>
+        </div>
+        <div class="section">
+          <div class="fields-card">
+            <button class="fields-toggle" id="fieldsToggle" onclick="toggleFields()">
+              <span>&#9432; What fields does the agent read?</span>
+              <span class="arrow">&#9654;</span>
+            </button>
+            <div class="fields-body" id="fieldsBody">
+              <div class="field-row"><span class="field-name">Invoice Number</span><span class="field-badge fb-req">required</span><span class="field-desc">Unique ID, e.g. INV-2024-001</span></div>
+              <div class="field-row"><span class="field-name">Vendor Name</span><span class="field-badge fb-req">required</span><span class="field-desc">Company issuing the invoice</span></div>
+              <div class="field-row"><span class="field-name">Issue Date</span><span class="field-badge fb-req">required</span><span class="field-desc">Date the invoice was created</span></div>
+              <div class="field-row"><span class="field-name">Subtotal</span><span class="field-badge fb-req">required</span><span class="field-desc">Pre-tax amount — used for math check</span></div>
+              <div class="field-row"><span class="field-name">Due Date</span><span class="field-badge fb-opt">optional</span><span class="field-desc">Payment deadline</span></div>
+              <div class="field-row"><span class="field-name">Tax</span><span class="field-badge fb-opt">optional</span><span class="field-desc">Tax amount — used for math check</span></div>
+              <div class="field-row"><span class="field-name">Total Due</span><span class="field-badge fb-req">required</span><span class="field-desc">Final amount owed</span></div>
+              <div class="field-row"><span class="field-name">Other Fees</span><span class="field-badge fb-opt">optional</span><span class="field-desc">Shipping, handling, surcharges, discounts (negative)</span></div>
+              <div class="fields-divider"></div>
+              <div class="field-row"><span class="field-name">Notes</span><span class="field-badge fb-opt">optional</span><span class="field-desc">Checked for urgency pressure</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-title">Bulk Upload — select multiple files</div>
+          <div class="bulk-zone" id="bulkZone">
+            <span class="up-icon">&#9783;</span>
+            Select multiple invoices at once<br>
+            <span style="font-size:11px;color:var(--text3);">PDF, Excel, CSV, images supported</span>
+            <input type="file" id="bulkInput" multiple accept=".pdf,.xlsx,.xls,.csv,.jpg,.jpeg,.png">
+          </div>
+        </div>
+      </aside>
+      <div class="content">
+        <div class="agent-status" id="agentStatus">
+          <span id="statusIcon">&#9642;</span>
+          <span id="statusText">Select an invoice, upload a file, or paste text to begin</span>
+        </div>
+        <div class="console" id="console">
+          <div class="console-empty" id="emptyState">
+            <div style="font-size:48px;opacity:0.2;">&#9889;</div>
+            <div style="text-align:center;">
+              <div style="font-size:14px;color:var(--text2);margin-bottom:6px;">Ready to process invoices</div>
+              <div style="font-size:12px;">Input data on the left — agents run automatically</div>
+            </div>
+          </div>
+        </div>
+        <div class="result-panel" id="resultPanel">
+          <div class="decision-banner" id="decisionBanner">
+            <div>
+              <div style="font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;" id="resultLabel">Agent Decision</div>
+              <div class="decision-text" id="decisionText"></div>
+            </div>
+            <div style="font-size:36px;" id="decisionIcon"></div>
+          </div>
+          <div class="result-grid">
+            <div class="result-card"><div class="rc-label">Invoice</div><div class="rc-value white" id="rInvoice">-</div></div>
+            <div class="result-card"><div class="rc-label">Vendor</div><div class="rc-value white" id="rVendor">-</div></div>
+            <div class="result-card"><div class="rc-label">Amount</div><div class="rc-value green" id="rAmount">-</div></div>
+            <div class="result-card"><div class="rc-label">Risk Score</div><div class="rc-value" id="rScore">-</div></div>
+          </div>
+          <div class="risk-bar-wrap">
+            <div class="risk-bar-track"><div class="risk-bar-fill" id="riskBar" style="width:0%"></div></div>
+            <div class="risk-bar-labels"><span>Low risk</span><span>High risk</span></div>
+          </div>
+          <div class="flags-list" id="flagsList"></div>
+          <div class="reasoning-box" id="reasoningBox"></div>
+          <div class="override-row" id="overrideRow">
+            <div class="override-label">&#9888; <span>Agent flagged warnings</span> — override decision manually:</div>
+            <button class="btn-pass" onclick="manualOverride('pass')">&#10003; Pass</button>
+            <button class="btn-fail" onclick="manualOverride('fail')">&#10007; Fail</button>
+            <span class="override-done" id="overrideDone"></span>
+          </div>
+          <div class="email-row" id="emailRow">
+            <div class="email-row-title">&#10007; Invoice Rejected — Notify Vendor</div>
+            <input class="email-to" id="emailTo" type="email" placeholder="vendor@example.com">
+            <input class="email-subject" id="emailSubject" type="text">
+            <textarea class="email-body-area" id="emailBodyArea"></textarea>
+            <div class="email-btns">
+              <button class="btn-email-open" onclick="openEmailClient()">&#128231; Open in Email App</button>
+              <button class="btn-email-copy" onclick="copyEmailText()">&#10697; Copy Message</button>
+              <span class="email-copy-done" id="emailCopyDone">&#10003; Copied!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── BULK RESULTS PANEL (inside .content) ── -->
+        <div class="bulk-panel" id="bulkPanel">
+        <div class="bulk-header">
+          <div class="bulk-title">
+            &#9783; Bulk Results
+            <span id="bulkProgressText" style="font-size:10px;color:var(--text3);font-weight:400;"></span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="bulk-sort" onclick="toggleBulkSort()">&#8597; Date</button>
+            <button class="bulk-clear" onclick="clearBulk()">Clear</button>
+          </div>
+        </div>
+        <div class="bulk-progress-bar"><div class="bulk-progress-fill" id="bulkProgressFill" style="width:0%"></div></div>
+        <div class="bulk-row-header">
+          <span>Invoice / File</span><span>Vendor</span><span>Amount</span><span>Actions</span>
+        </div>
+        <div class="bulk-list" id="bulkList">
+          <div class="bulk-empty" id="bulkEmpty" style="padding:3rem;color:var(--text3);font-size:12px;text-align:center;">
+            Select multiple files from the sidebar to begin bulk processing
+          </div>
+        </div>
+        <div class="bulk-stats" id="bulkStatsBar" style="display:none;">
+          <div class="bstat"><div class="bstat-val green" id="bsApprove">0</div><div class="bstat-lbl">Approved</div></div>
+          <div class="bstat"><div class="bstat-val amber" id="bsReview">0</div><div class="bstat-lbl">Review</div></div>
+          <div class="bstat"><div class="bstat-val red"   id="bsReject">0</div><div class="bstat-lbl">Rejected</div></div>
+          <div class="bstat"><div class="bstat-val white" id="bsTotal">0</div><div class="bstat-lbl">Total</div></div>
+        </div>
+      </div><!-- /.bulk-panel -->
+      </div><!-- /.content -->
+    </div><!-- /.main -->
+
+    <!-- ── HISTORY VIEW ── -->
+    <div class="history-view" id="historyView">
+      <div class="history-toolbar">
+        <input class="history-search" id="historySearch" placeholder="&#128269; Search by invoice # or vendor..." oninput="renderHistory()">
+        <button class="history-clear-btn" onclick="clearHistory()">&#128465; Clear All</button>
+      </div>
+      <div class="hist-range-bar">
+        <span class="hist-range-label">From</span>
+        <input type="date" class="hist-date-input" id="histFrom" onchange="onHistFromChange()">
+        <span class="hist-range-sep">&#8594;</span>
+        <span class="hist-range-label">To</span>
+        <input type="date" class="hist-date-input" id="histTo" onchange="onHistToChange()">
+        <button class="hist-range-clear" onclick="clearDateRange()">&#10005; Clear</button>
+        <span class="hist-range-info" id="histRangeInfo" style="display:none"></span>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+    <script>
+      let sel = 'clean';
+      let running = false;
+      let debounceTimer = null;
+      let currentSource = null; // 'sample' | 'upload' | 'text'
+
+      /* ── status bar ─────────────────────────── */
+      function setStatus(msg, active) {
+        const bar = document.getElementById('agentStatus');
+        const icon = document.getElementById('statusIcon');
+        const text = document.getElementById('statusText');
+        bar.className = 'agent-status' + (active ? ' running' : '');
+        icon.innerHTML = active ? '<span class="spinner"></span>' : '&#9642;';
+        text.textContent = msg;
+      }
+
+      /* ── invoice card selection ─────────────── */
+      function selectInvoice(t) {
+        if (running) return;
+        sel = t;
+        currentSource = 'sample';
+        document.getElementById('card-clean').classList.toggle('selected', t === 'clean');
+        document.getElementById('card-suspicious').classList.toggle('selected', t === 'suspicious');
+        // Clear other inputs
+        document.getElementById('customText').value = '';
+        document.getElementById('customText').classList.remove('pending');
+        document.getElementById('autoHint').classList.remove('counting');
+        document.getElementById('autoHint').textContent = 'Agent runs 1.5 s after you stop typing';
+        clearTimeout(debounceTimer);
+        runAgent({ invoice_type: t });
+      }
+
+      /* ── textarea debounce ──────────────────── */
+      document.getElementById('customText').addEventListener('input', function() {
+        const val = this.value.trim();
+        clearTimeout(debounceTimer);
+        if (!val) {
+          this.classList.remove('pending');
+          document.getElementById('autoHint').classList.remove('counting');
+          document.getElementById('autoHint').textContent = 'Agent runs 1.5 s after you stop typing';
+          return;
+        }
+        this.classList.add('pending');
+        document.getElementById('autoHint').classList.add('counting');
+        document.getElementById('autoHint').textContent = 'Running in 1.5 s...';
+        debounceTimer = setTimeout(() => {
+          if (!running && val) {
+            // deselect sample cards
+            document.getElementById('card-clean').classList.remove('selected');
+            document.getElementById('card-suspicious').classList.remove('selected');
+            currentSource = 'text';
+            this.classList.remove('pending');
+            document.getElementById('autoHint').classList.remove('counting');
+            document.getElementById('autoHint').textContent = 'Agent runs 1.5 s after you stop typing';
+            runAgent({ custom_text: val });
+          }
+        }, 1500);
+      });
+
+      /* ── file upload ────────────────────────── */
+      const uploadZone = document.getElementById('uploadZone');
+      const fileInput  = document.getElementById('fileInput');
+
+      uploadZone.addEventListener('click', () => fileInput.click());
+
+      uploadZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+      });
+      uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+      uploadZone.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) handleFile(fileInput.files[0]);
+        fileInput.value = '';
+      });
+
+      async function handleFile(file) {
+        if (running) return;
+        const status = document.getElementById('uploadStatus');
+        status.style.display = 'block';
+        status.textContent = `Uploading ${file.name}...`;
+        uploadZone.classList.add('drag-over');
+
+        const form = new FormData();
+        form.append('file', file);
+        try {
+          const res = await fetch('/upload', { method: 'POST', body: form });
+          const json = await res.json();
+          uploadZone.classList.remove('drag-over');
+          if (json.error) {
+            status.style.color = 'var(--red)';
+            status.textContent = 'Upload error: ' + json.error;
+            return;
+          }
+          status.style.color = 'var(--green)';
+          status.textContent = `Loaded: ${file.name}`;
+          // deselect sample cards, clear textarea
+          document.getElementById('card-clean').classList.remove('selected');
+          document.getElementById('card-suspicious').classList.remove('selected');
+          document.getElementById('customText').value = '';
+          currentSource = 'upload';
+          runAgent({ custom_text: json.text });
+        } catch (e) {
+          uploadZone.classList.remove('drag-over');
+          status.style.color = 'var(--red)';
+          status.textContent = 'Upload failed: ' + e.message;
+        }
+      }
+
+      /* ── logging helpers ────────────────────── */
+      function addLog(msg) {
+        const c = document.getElementById('console');
+        const e = document.getElementById('emptyState');
+        if (e) e.remove();
+        const d = document.createElement('div');
+        d.className = 'log-line';
+        if (msg.includes('==='))       d.classList.add('hd');
+        else if (msg.includes('✅') || msg.includes('DECISION')) d.classList.add('hi');
+        else if (msg.includes('❌'))   d.classList.add('er');
+        else if (msg.includes('⚠'))   d.classList.add('wa');
+        d.textContent = msg;
+        c.appendChild(d);
+        c.scrollTop = c.scrollHeight;
+      }
+
+      /* ── manual override ── */
+      function manualOverride(action) {
+        const isPass = action === 'pass';
+        const banner = document.getElementById('decisionBanner');
+        const dt     = document.getElementById('decisionText');
+        const icon   = document.getElementById('decisionIcon');
+        const done   = document.getElementById('overrideDone');
+        const row    = document.getElementById('overrideRow');
+        banner.className = 'decision-banner ' + (isPass ? 'approve' : 'reject');
+        dt.className     = 'decision-text '   + (isPass ? 'approve' : 'reject');
+        dt.textContent   = isPass ? 'Manually Approved' : 'Manually Rejected';
+        icon.textContent = isPass ? '✓' : '✕';
+        done.style.display = 'inline';
+        done.style.color   = isPass ? 'var(--green)' : 'var(--red)';
+        done.textContent   = isPass ? '✓ Marked as passed' : '✕ Marked as failed';
+        row.querySelectorAll('button').forEach(b => b.style.display = 'none');
+        addLog(isPass ? '✅ Manual override: APPROVED by user' : '❌ Manual override: REJECTED by user');
+      }
+
+      /* ── result display ─────────────────────── */
+      function showResult(data, fromBulk) {
+        document.getElementById('resultPanel').classList.add('visible');
+        document.getElementById('resultLabel').textContent = fromBulk ? 'Selected Invoice — Detail' : 'Agent Decision';
+        const d   = data.decision;
+        const cls = d === 'AUTO_APPROVE' ? 'approve' : d === 'REJECT' ? 'reject' : 'review';
+        const icon  = d === 'AUTO_APPROVE' ? '✓' : d === 'REJECT' ? '✕' : '⚠';
+        const label = d === 'AUTO_APPROVE' ? 'Auto Approved' : d === 'REJECT' ? 'Rejected' : 'Manual Review Required';
+        document.getElementById('decisionBanner').className = 'decision-banner ' + cls;
+        const dt = document.getElementById('decisionText');
+        dt.className = 'decision-text ' + cls;
+        dt.textContent = label;
+        document.getElementById('decisionIcon').textContent = icon;
+        document.getElementById('rInvoice').textContent = data.invoice_number || '-';
+        document.getElementById('rVendor').textContent  = data.vendor || '-';
+        const currencySymbols = { USD:'$', EUR:'€', GBP:'£', INR:'₹', AED:'د.إ', SGD:'S$', JPY:'¥', CAD:'C$', AUD:'A$', CHF:'CHF ', CNY:'¥', MYR:'RM ', HKD:'HK$', NZD:'NZ$', ZAR:'R ', SEK:'kr ', NOK:'kr ', DKK:'kr ', BRL:'R$ ', MXN:'MX$', PKR:'₨', LKR:'Rs ', NPR:'Rs ', BDT:'৳', THB:'฿', IDR:'Rp ', PHP:'₱', KRW:'₩', TRY:'₺' };
+        const sym = currencySymbols[data.currency] || (data.currency ? data.currency + ' ' : '$');
+        document.getElementById('rAmount').textContent  = data.total ? sym + parseFloat(data.total).toLocaleString() : '-';
+        const s  = data.risk_score || 0;
+        const se = document.getElementById('rScore');
+        se.textContent  = s + '/100';
+        se.className    = 'rc-value ' + (s < 30 ? 'green' : s < 70 ? 'amber' : 'red');
+        const bar = document.getElementById('riskBar');
+        bar.style.width      = '0%';
+        bar.style.background = s < 30 ? 'var(--green)' : s < 70 ? 'var(--amber)' : 'var(--red)';
+        setTimeout(() => { bar.style.width = s + '%'; }, 100);
+        const fl = document.getElementById('flagsList');
+        fl.innerHTML = '';
+        (data.flags    || []).forEach(f => { const t = document.createElement('div'); t.className = 'flag-tag';      t.textContent = f; fl.appendChild(t); });
+        (data.warnings || []).forEach(w => { const t = document.createElement('div'); t.className = 'flag-tag warn'; t.textContent = w; fl.appendChild(t); });
+        if (data.reasoning) {
+          const rb = document.getElementById('reasoningBox');
+          rb.style.display = 'block';
+          rb.textContent   = '💬 ' + data.reasoning;
+        }
+        // override row: only for MANUAL_REVIEW; email row: only for REJECT
+        const overrideRow = document.getElementById('overrideRow');
+        const emailRow    = document.getElementById('emailRow');
+        const done        = document.getElementById('overrideDone');
+
+        const showOverride = d === 'MANUAL_REVIEW' || ((data.warnings || []).length > 0 && d !== 'REJECT');
+        overrideRow.classList.toggle('visible', showOverride);
+        done.style.display = 'none';
+        overrideRow.querySelectorAll('button').forEach(b => b.style.display = '');
+
+        if (d === 'REJECT') {
+          emailRow.classList.add('visible');
+          prefillEmail(data);
+        } else {
+          emailRow.classList.remove('visible');
+        }
+      }
+
+      /* ── email vendor ── */
+      function prefillEmail(data) {
+        const vendor  = data.vendor || 'Vendor';
+        const inv     = data.invoice_number || 'N/A';
+        const flags   = (data.flags || []).map(f => '  • ' + f).join('\n');
+        const sym     = ({USD:'$',EUR:'€',GBP:'£',INR:'₹',AED:'AED ',SGD:'S$',JPY:'¥'})[data.currency] || (data.currency ? data.currency + ' ' : '$');
+        const amount  = data.total ? sym + parseFloat(data.total).toLocaleString() : 'N/A';
+        document.getElementById('emailTo').value      = '';
+        document.getElementById('emailSubject').value = `Invoice ${inv} Rejected — Action Required`;
+        document.getElementById('emailBodyArea').value =
+`Dear ${vendor},
+
+We have reviewed Invoice ${inv} (Amount: ${amount}) and regret to inform you that it has been rejected by our automated fraud detection system.
+
+Reasons for rejection:
+${flags || '  • Please see attached analysis for details.'}
+
+Please review the above issues and resubmit a corrected invoice at your earliest convenience. If you believe this rejection is in error, contact our accounts team with supporting documentation.
+
+Regards,
+Accounts Payable Team`;
+        document.getElementById('emailCopyDone').style.display = 'none';
+      }
+
+      function openEmailClient() {
+        const to      = document.getElementById('emailTo').value.trim();
+        const subject = encodeURIComponent(document.getElementById('emailSubject').value);
+        const body    = encodeURIComponent(document.getElementById('emailBodyArea').value);
+        window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+      }
+
+      function copyEmailText() {
+        const subject = document.getElementById('emailSubject').value;
+        const body    = document.getElementById('emailBodyArea').value;
+        const full    = `Subject: ${subject}\n\n${body}`;
+        navigator.clipboard.writeText(full).then(() => {
+          const done = document.getElementById('emailCopyDone');
+          done.style.display = 'inline';
+          setTimeout(() => { done.style.display = 'none'; }, 2500);
+        });
+      }
+
+      /* ── core agent runner ──────────────────── */
+      async function runAgent(payload) {
+        if (running) return;
+        running = true;
+        setStatus('Agent running...', true);
+        document.getElementById('resultPanel').classList.remove('visible');
+        document.getElementById('console').innerHTML = '';
+        addLog('══════════════════════════════════════');
+        addLog('  FINFLOW AI AGENT — Starting...');
+        addLog('══════════════════════════════════════');
+        try {
+          const res = await fetch('/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const reader  = res.body.getReader();
+          const decoder = new TextDecoder();
+          let singleBuf = '';
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            singleBuf += decoder.decode(value, { stream: true });
+            const lines = singleBuf.split('\n');
+            singleBuf = lines.pop();
+            for (const line of lines) {
+              if (!line.trim().startsWith('data: ')) continue;
+              try {
+                const data = JSON.parse(line.trim().slice(6));
+                if (data.type === 'log') {
+                  addLog(data.message);
+                } else if (data.type === 'result') {
+                  addLog('══════════════════════════════════════');
+                  addLog('  DECISION: ' + data.decision);
+                  addLog('══════════════════════════════════════');
+                  showResult(data);
+                  saveToHistory(data);
+                } else if (data.type === 'error') {
+                  addLog('❌ ERROR: ' + data.message);
+                }
+              } catch (e) {}
+            }
+          }
+          setStatus('Analysis complete', false);
+        } catch (e) {
+          addLog('❌ Connection error: ' + e.message);
+          setStatus('Error — check connection', false);
+        }
+        running = false;
+      }
+
+/* ── toggle fields reference ── */
+      function toggleFields() {
+        const btn  = document.getElementById('fieldsToggle');
+        const body = document.getElementById('fieldsBody');
+        const open = body.classList.toggle('open');
+        btn.classList.toggle('open', open);
+      }
+
+      /* ════════════════════════════════════════
+         BULK UPLOAD
+      ════════════════════════════════════════ */
+      const bulkZone  = document.getElementById('bulkZone');
+      const bulkInput = document.getElementById('bulkInput');
+      let bulkItems   = [];   // all processed rows
+      let bulkSortAsc = false; // newest first by default
+
+      bulkZone.addEventListener('click', () => bulkInput.click());
+      bulkZone.addEventListener('dragover',  e => { e.preventDefault(); bulkZone.classList.add('drag-over'); });
+      bulkZone.addEventListener('dragleave', () => bulkZone.classList.remove('drag-over'));
+      bulkZone.addEventListener('drop', e => {
+        e.preventDefault(); bulkZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) startBulk(e.dataTransfer.files);
+      });
+      bulkInput.addEventListener('change', () => {
+        if (bulkInput.files.length) startBulk(bulkInput.files);
+        bulkInput.value = '';
+      });
+
+      const CURR_SYM = { USD:'$',EUR:'€',GBP:'£',INR:'₹',AED:'د.إ',SGD:'S$',JPY:'¥',CAD:'C$',AUD:'A$',CHF:'CHF ',CNY:'¥',MYR:'RM ',HKD:'HK$',NZD:'NZ$',ZAR:'R ',BRL:'R$ ',MXN:'MX$',PKR:'₨',LKR:'Rs ',THB:'฿',IDR:'Rp ',PHP:'₱',KRW:'₩',TRY:'₺' };
+      function fmtAmount(total, currency) {
+        if (!total) return '—';
+        const sym = CURR_SYM[currency] || (currency ? currency+' ' : '$');
+        return sym + parseFloat(total).toLocaleString();
+      }
+
+      async function startBulk(files) {
+        if (running) return;
+        bulkItems = [];
+        // show bulk panel in main content area, hide single-invoice views
+        document.getElementById('console').style.display      = 'none';
+        document.getElementById('resultPanel').classList.remove('visible');
+        document.getElementById('agentStatus').style.display  = 'none';
+        document.getElementById('bulkPanel').classList.add('visible');
+        document.getElementById('bulkList').innerHTML = '';
+        document.getElementById('bulkStatsBar').style.display = 'none';
+        document.getElementById('bulkProgressFill').style.width = '0%';
+        document.getElementById('bulkProgressText').textContent = `0 / ${files.length}`;
+
+        const form = new FormData();
+        for (const f of files) form.append('files', f);
+
+        setStatus(`Processing ${files.length} file(s)...`, true);
+        const res = await fetch('/bulk-process', { method: 'POST', body: form });
+        const reader = res.body.getReader();
+        const dec = new TextDecoder();
+        let buf = '';
+        let done = false;
+        while (!done) {
+          const { done: d, value } = await reader.read();
+          done = d;
+          buf += dec.decode(value || new Uint8Array(), { stream: !done });
+          // process only complete lines (split on \n, keep remainder)
+          const lines = buf.split('\n');
+          buf = lines.pop(); // last element may be incomplete — keep buffered
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data: ')) continue;
+            try {
+              const msg = JSON.parse(trimmed.slice(6));
+              if (msg.type === 'bulk_start') {
+                document.getElementById('bulkProgressText').textContent = `0 / ${msg.total}`;
+              } else if (msg.type === 'bulk_item') {
+                bulkItems.push(msg);
+                if (!msg.error) saveToHistory(msg);
+                renderBulkRows();
+                const pct = Math.round((bulkItems.length / files.length) * 100);
+                document.getElementById('bulkProgressFill').style.width = pct + '%';
+                document.getElementById('bulkProgressText').textContent = `${bulkItems.length} / ${files.length}`;
+              } else if (msg.type === 'bulk_done') {
+                document.getElementById('bulkProgressFill').style.width = '100%';
+                updateBulkStats();
+                setStatus(`Bulk complete — ${msg.total} invoice(s) processed`, false);
+              }
+            } catch(e) { console.warn('SSE parse error:', e, trimmed.slice(0,80)); }
+          }
+        }
+        running = false;
+      }
+
+      function renderBulkRows() {
+        const list = document.getElementById('bulkList');
+        list.innerHTML = '';
+        for (const item of bulkItems) {
+          list.appendChild(makeBulkRow(item));
+        }
+      }
+
+      function makeBulkRow(item) {
+        const row = document.createElement('div');
+        row.id = 'brow-' + item.index;
+
+        if (item.error) {
+          row.className = 'bulk-row br-reject';
+          row.innerHTML = `
+            <div class="br-top">
+              <span class="br-inv" title="${item.filename || ''}">${item.filename || '—'}</span>
+              <span class="br-decision reject">ERROR</span>
+            </div>
+            <div class="br-vendor" style="color:var(--red);font-size:11px;">${item.error}</div>`;
+          return row;
+        }
+
+        const decision = item._override === 'pass' ? 'AUTO_APPROVE' : item._override === 'fail' ? 'REJECT' : (item.decision || 'MANUAL_REVIEW');
+        const cls      = decision === 'AUTO_APPROVE' ? 'approve' : decision === 'REJECT' ? 'reject' : 'review';
+        const decLabel = decision === 'AUTO_APPROVE' ? 'AUTO APPROVE' : decision === 'REJECT' ? 'REJECT' : 'MANUAL REVIEW';
+        row.className  = `bulk-row br-${cls}`;
+
+        const score    = item.risk_score ?? 0;
+        const sCls     = score < 30 ? 'green' : score < 70 ? 'amber' : 'red';
+        const barColor = sCls === 'green' ? 'var(--green)' : sCls === 'amber' ? 'var(--amber)' : 'var(--red)';
+        const invLabel = item.invoice_number || item.filename || '—';
+        const vendor   = item.vendor || '—';
+        const amount   = fmtAmount(item.total, item.currency);
+
+        const flags    = (item.flags || []);
+        const warnings = (item.warnings || []);
+        let flagsHtml  = '';
+        if (flags.length || warnings.length) {
+          flagsHtml = '<div class="br-flags">' +
+            flags.map(f => `<span class="br-flag">⚑ ${f}</span>`).join('') +
+            warnings.map(w => `<span class="br-warn">⚠ ${w}</span>`).join('') +
+            '</div>';
+        }
+
+        const reasoning = (item.reasoning || '').slice(0, 120) + ((item.reasoning || '').length > 120 ? '…' : '');
+
+        let actionsHtml = '';
+        if (!item._override && decision === 'MANUAL_REVIEW') {
+          actionsHtml = `<button class="bra-pass" onclick="event.stopPropagation();bulkOverride(${item.index},'pass')">Pass</button>
+                         <button class="bra-fail" onclick="event.stopPropagation();bulkOverride(${item.index},'fail')">Fail</button>`;
+        } else if (decision === 'REJECT' && !item._override) {
+          actionsHtml = `<button class="bra-email" onclick="event.stopPropagation();bulkEmail(${item.index})">&#128231; Email Vendor</button>`;
+        } else if (item._override === 'pass') {
+          actionsHtml = `<span style="font-size:10px;color:var(--approve);font-weight:700;">&#10003; Passed</span>`;
+        } else if (item._override === 'fail') {
+          actionsHtml = `<span style="font-size:10px;color:var(--red);font-weight:700;">&#10007; Failed</span>`;
+        }
+
+        row.innerHTML = `
+          <div class="br-top">
+            <span class="br-inv" title="${item.filename || ''}">${invLabel}</span>
+            <span class="br-decision ${cls}">${decLabel}</span>
+          </div>
+          <div class="br-vendor">${vendor}</div>
+          <div class="br-mid">
+            <span class="br-amount">${amount}</span>
+            <span class="br-score" style="color:${barColor}">${score}/100</span>
+          </div>
+          <div class="br-bar-wrap"><div class="br-bar-track"><div class="br-bar-fill" style="width:${score}%;background:${barColor}"></div></div></div>
+          ${flagsHtml}
+          <div class="br-bottom">
+            ${reasoning ? `<span class="br-reasoning">💬 ${reasoning}</span>` : ''}
+            <div class="br-actions">${actionsHtml}</div>
+          </div>`;
+
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', () => {
+          document.querySelectorAll('.bulk-row').forEach(r => r.classList.remove('br-selected'));
+          row.classList.add('br-selected');
+          showResult({
+            invoice_number: item.invoice_number,
+            vendor:         item.vendor,
+            currency:       item.currency,
+            total:          item.total,
+            decision,
+            risk_score:     item.risk_score,
+            risk_level:     item.risk_level,
+            flags:          item.flags    || [],
+            warnings:       item.warnings || [],
+            reasoning:      item.reasoning || ''
+          }, true);
+          document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        return row;
+      }
+
+      function bulkEmail(index) {
+        const item = bulkItems.find(i => i.index === index);
+        if (!item) return;
+        // show result panel with email compose
+        document.querySelectorAll('.bulk-row').forEach(r => r.classList.remove('br-selected'));
+        const row = document.getElementById('brow-' + index);
+        if (row) row.classList.add('br-selected');
+        showResult({
+          invoice_number: item.invoice_number,
+          vendor:         item.vendor,
+          currency:       item.currency,
+          total:          item.total,
+          decision:       'REJECT',
+          risk_score:     item.risk_score,
+          risk_level:     item.risk_level,
+          flags:          item.flags    || [],
+          warnings:       item.warnings || [],
+          reasoning:      item.reasoning || ''
+        }, true);
+        document.getElementById('resultPanel').scrollIntoView({ behavior:'smooth', block:'nearest' });
+      }
+
+      function bulkOverride(index, action) {
+        const item = bulkItems.find(i => i.index === index);
+        if (!item) return;
+        item._override = action;
+        renderBulkRows();
+        updateBulkStats();
+        // re-show result panel with updated decision
+        const decision = action === 'pass' ? 'AUTO_APPROVE' : 'REJECT';
+        showResult({
+          invoice_number: item.invoice_number,
+          vendor:         item.vendor,
+          currency:       item.currency,
+          total:          item.total,
+          decision,
+          risk_score:     item.risk_score,
+          flags:          item.flags    || [],
+          warnings:       item.warnings || [],
+          reasoning:      item.reasoning || ''
+        });
+      }
+
+      function updateBulkStats() {
+        const approve = bulkItems.filter(i => i.decision === 'AUTO_APPROVE' || i._override === 'pass').length;
+        const review  = bulkItems.filter(i => i.decision === 'MANUAL_REVIEW' && !i._override).length;
+        const reject  = bulkItems.filter(i => i.decision === 'REJECT' || i._override === 'fail').length;
+        document.getElementById('bsApprove').textContent = approve;
+        document.getElementById('bsReview').textContent  = review;
+        document.getElementById('bsReject').textContent  = reject;
+        document.getElementById('bsTotal').textContent   = bulkItems.length;
+        document.getElementById('bulkStatsBar').style.display = bulkItems.length ? 'grid' : 'none';
+      }
+
+      function toggleBulkSort() {
+        bulkSortAsc = !bulkSortAsc;
+        document.querySelector('.bulk-sort').textContent = bulkSortAsc ? '↑ Date' : '↓ Date';
+        renderBulkRows();
+      }
+
+      function clearBulk() {
+        bulkItems = [];
+        document.getElementById('bulkList').innerHTML = '<div class="bulk-empty" style="padding:3rem;color:var(--text3);font-size:12px;text-align:center;">Select multiple files from the sidebar to begin bulk processing</div>';
+        document.getElementById('bulkStatsBar').style.display = 'none';
+        document.getElementById('bulkProgressFill').style.width = '0%';
+        document.getElementById('bulkProgressText').textContent = '';
+        document.getElementById('bulkPanel').classList.remove('visible');
+        // restore single-invoice views
+        document.getElementById('console').style.display     = '';
+        document.getElementById('agentStatus').style.display = '';
+      }
+
+      /* ════════════════════════════════════════
+         HISTORY (localStorage)
+      ════════════════════════════════════════ */
+      const HIST_KEY = 'finflow_history';
+      const MAX_HIST = 500;
+
+      function saveToHistory(entry) {
+        const hist = getHistory();
+        hist.unshift({
+          id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
+          ts: Date.now(),
+          invoice_number: entry.invoice_number,
+          vendor:         entry.vendor || entry.vendor_name,
+          currency:       entry.currency,
+          total:          entry.total  || entry.total_due,
+          decision:       entry.decision,
+          risk_score:     entry.risk_score,
+          risk_level:     entry.risk_level,
+          flags:          entry.flags    || [],
+          warnings:       entry.warnings || [],
+          reasoning:      entry.reasoning || ''
+        });
+        if (hist.length > MAX_HIST) hist.splice(MAX_HIST);
+        localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+        updateHistoryBadge();
+      }
+
+      function getHistory() {
+        try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch { return []; }
+      }
+
+      function updateHistoryBadge() {
+        const count = getHistory().length;
+        const badge = document.getElementById('historyBadge');
+        badge.textContent = count;
+        badge.style.display = count ? '' : 'none';
+      }
+
+      function clearHistory() {
+        if (!confirm('Clear all history? This cannot be undone.')) return;
+        localStorage.removeItem(HIST_KEY);
+        clearDateRange();
+        updateHistoryBadge();
+        renderHistory();
+      }
+
+      /* ── tab switching ── */
+      function switchTab(tab) {
+        const toHistory = tab === 'history';
+        document.getElementById('tab-analyze').classList.toggle('active', !toHistory);
+        document.getElementById('tab-history').classList.toggle('active',  toHistory);
+        document.getElementById('analyzeView').style.display = toHistory ? 'none' : '';
+        document.getElementById('historyView').classList.toggle('visible', toHistory);
+        if (toHistory) renderHistory();
+      }
+
+      /* ── history date range ── */
+      const MAX_RANGE_DAYS = 31;
+
+      function toYMD(date) { // Date → "YYYY-MM-DD"
+        return date.toISOString().slice(0, 10);
+      }
+      function addDays(ymd, n) {
+        const d = new Date(ymd + 'T00:00:00');
+        d.setDate(d.getDate() + n);
+        return toYMD(d);
+      }
+
+      function onHistFromChange() {
+        const from = document.getElementById('histFrom').value;
+        const toEl = document.getElementById('histTo');
+        if (!from) { toEl.min = ''; renderHistory(); return; }
+        const maxTo = addDays(from, MAX_RANGE_DAYS - 1);
+        toEl.min = from;
+        toEl.max = maxTo;
+        if (toEl.value && toEl.value < from) toEl.value = from;
+        if (toEl.value && toEl.value > maxTo) toEl.value = maxTo;
+        renderHistory();
+      }
+
+      function onHistToChange() {
+        const to   = document.getElementById('histTo').value;
+        const fromEl = document.getElementById('histFrom');
+        if (!to) { fromEl.max = ''; renderHistory(); return; }
+        const minFrom = addDays(to, -(MAX_RANGE_DAYS - 1));
+        fromEl.max = to;
+        fromEl.min = minFrom;
+        if (fromEl.value && fromEl.value > to)       fromEl.value = to;
+        if (fromEl.value && fromEl.value < minFrom)  fromEl.value = minFrom;
+        renderHistory();
+      }
+
+      function clearDateRange() {
+        const f = document.getElementById('histFrom');
+        const t = document.getElementById('histTo');
+        f.value = ''; f.min = ''; f.max = '';
+        t.value = ''; t.min = ''; t.max = '';
+        document.getElementById('histRangeInfo').style.display = 'none';
+        renderHistory();
+      }
+
+      /* ── history render ── */
+      function dateLabel(ts) {
+        const d         = new Date(ts);
+        const today     = new Date();
+        const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+        if (d.toDateString() === today.toDateString())     return 'Today';
+        if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+        return d.toLocaleDateString([], { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+      }
+
+      function renderHistory() {
+        const hist = getHistory();
+        const list = document.getElementById('historyList');
+        list.innerHTML = '';
+
+        const fromVal = document.getElementById('histFrom').value; // "YYYY-MM-DD" or ""
+        const toVal   = document.getElementById('histTo').value;
+
+        // update range info label
+        const info = document.getElementById('histRangeInfo');
+        if (fromVal || toVal) {
+          const f = fromVal ? new Date(fromVal + 'T00:00:00').toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'}) : '…';
+          const t = toVal   ? new Date(toVal   + 'T00:00:00').toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'}) : '…';
+          info.textContent = f + ' — ' + t;
+          info.style.display = '';
+        } else {
+          info.style.display = 'none';
+        }
+
+        const q = (document.getElementById('historySearch').value || '').toLowerCase().trim();
+        let filtered = hist;
+
+        // date range filter
+        if (fromVal) {
+          const from0 = new Date(fromVal + 'T00:00:00').getTime();
+          filtered = filtered.filter(e => e.ts >= from0);
+        }
+        if (toVal) {
+          const to23 = new Date(toVal + 'T23:59:59').getTime();
+          filtered = filtered.filter(e => e.ts <= to23);
+        }
+        if (q) filtered = filtered.filter(e =>
+          (e.invoice_number || '').toLowerCase().includes(q) ||
+          (e.vendor || '').toLowerCase().includes(q)
+        );
+
+        const hasRangeFilter = !!(fromVal || toVal);
+        if (!filtered.length) {
+          const msg = hasRangeFilter
+            ? 'No results in selected date range' + (q ? ' + search' : '')
+            : (q ? 'No results for "' + q + '"' : 'No history yet');
+          list.innerHTML = '<div class="history-empty"><div style="font-size:48px;opacity:0.15;">&#128337;</div><div>' +
+            msg + '<br><span style="font-size:11px;color:var(--text3);">Processed invoices will appear here</span></div></div>';
+          return;
+        }
+
+        let lastLabel = null;
+        for (const entry of filtered) {
+          const lbl = dateLabel(entry.ts);
+          if (lbl !== lastLabel) {
+            lastLabel = lbl;
+            const dg = document.createElement('div');
+            dg.className = 'history-date-group';
+            dg.textContent = lbl;
+            list.appendChild(dg);
+          }
+          list.appendChild(makeHistCard(entry));
+        }
+      }
+
+      function makeHistCard(entry) {
+        const card = document.createElement('div');
+        const d    = entry.decision || 'MANUAL_REVIEW';
+        const cls  = d === 'AUTO_APPROVE' ? 'approve' : d === 'REJECT' ? 'reject' : 'review';
+        const decLabel = d === 'AUTO_APPROVE' ? 'AUTO APPROVE' : d === 'REJECT' ? 'REJECT' : 'MANUAL REVIEW';
+        card.className = `hist-card hc-${cls}`;
+        const time   = new Date(entry.ts).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+        const amount = fmtAmount(entry.total, entry.currency);
+        const score  = entry.risk_score || 0;
+        card.innerHTML = `
+          <div class="hc-top">
+            <span class="hc-inv">${entry.invoice_number || '—'}</span>
+            <span class="hc-time">&#128337; ${time}</span>
+          </div>
+          <div class="hc-mid">
+            <span class="hc-vendor">${entry.vendor || '—'}</span>
+            <span class="hc-amount">${amount}</span>
+          </div>
+          <div class="hc-bottom">
+            <span class="hc-decision ${cls}">${decLabel}</span>
+            <span class="hc-risk">Risk ${score}/100</span>
+          </div>`;
+        card.addEventListener('click', () => {
+          switchTab('analyze');
+          setTimeout(() => showResult(entry), 80);
+        });
+        return card;
+      }
+
+      /* ── auto-run the default sample on load ── */
+      window.addEventListener('DOMContentLoaded', () => {
+        updateHistoryBadge();
+        runAgent({ invoice_type: 'clean' });
+      });
+    </script>
+</body>
+</html>

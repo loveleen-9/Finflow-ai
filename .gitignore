@@ -1,0 +1,29 @@
+# Environment & secrets
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Uploads (temp files)
+uploads/*
+!uploads/.gitkeep
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (package-lock exists but no node_modules needed)
+node_modules/
