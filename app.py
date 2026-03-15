@@ -266,7 +266,10 @@ def process():
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
 
-    return Response(generate(), mimetype="text/event-stream")
+    resp = Response(generate(), mimetype="text/event-stream")
+    resp.headers["X-Accel-Buffering"] = "no"
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
 
 @app.route("/bulk-process", methods=["POST"])
 def bulk_process():
@@ -335,7 +338,10 @@ def bulk_process():
 
         yield f"data: {json.dumps({'type': 'bulk_done', 'total': total})}\n\n"
 
-    return Response(generate(), mimetype="text/event-stream")
+    resp = Response(generate(), mimetype="text/event-stream")
+    resp.headers["X-Accel-Buffering"] = "no"
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
