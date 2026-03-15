@@ -24,9 +24,9 @@ for _f in os.listdir(UPLOAD_FOLDER):
 SAMPLE_INVOICES = {
     "clean": """
 INVOICE
-Invoice Number: INV-2024-001
-Date: 2024-03-10
-Due Date: 2024-04-10
+Invoice Number: INV-2026-001
+Date: 2026-03-01
+Due Date: 2026-04-01
 FROM: TechSupplies Co.
 TO: Acme Corporation
 ITEMS:
@@ -40,9 +40,9 @@ Payment: Bank Transfer
 """,
     "suspicious": """
 INVOICE
-Invoice Number: INV-2024-002
-Date: 2024-03-11
-Due Date: 2024-03-14
+Invoice Number: INV-2026-002
+Date: 2026-03-10
+Due Date: 2026-03-13
 FROM: SuspiciousVendor LLC
 TO: Acme Corporation
 ITEMS:
@@ -57,13 +57,13 @@ Notes: URGENT - pay within 3 days or penalty applies
 """,
     "review": """
 INVOICE
-Invoice Number: INV-2025-089
-Date: 2025-09-15
-Due Date: 2025-10-15
+Invoice Number: INV-2026-003
+Date: 2026-03-05
+Due Date: 2026-04-05
 FROM: GlobalConsult Partners
 TO: Acme Corporation
 ITEMS:
-Strategy Consulting Q3 = $3,200.00
+Strategy Consulting Q1 = $3,200.00
 Market Research Report = $1,800.00
 SUBTOTAL: $5,000.00
 TAX (10%): $500.00
