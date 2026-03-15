@@ -54,6 +54,22 @@ TAX (10%): $619.90
 TOTAL DUE: $7,500.00
 Payment: Offshore Wire Transfer
 Notes: URGENT - pay within 3 days or penalty applies
+""",
+    "review": """
+INVOICE
+Invoice Number: INV-2025-089
+Date: 2025-09-15
+Due Date: 2025-10-15
+FROM: GlobalConsult Partners
+TO: Acme Corporation
+ITEMS:
+Strategy Consulting Q3 = $3,200.00
+Market Research Report = $1,800.00
+SUBTOTAL: $5,000.00
+TAX (10%): $500.00
+TOTAL DUE: $5,500.00
+Payment: Bank Transfer
+Notes: First-time vendor. References available on request.
 """
 }
 
